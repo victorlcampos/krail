@@ -35,15 +35,15 @@ import uk.q3c.krail.core.services.Service;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Configures Event bus implementations for, UIScope, VaadinSessionScope and Singleton scope.  All classes annotated with {@link Listener} are subscribed to a
- * bus, using logic provided by {@link DefaultEventBusAutoSubscriber}, but can be changed by providing an alternative implementation in {@link
- * EventBusModule.BusTypeListener}:
+ * Configures Event bus implementations for, UIScope, VaadinSessionScope and Singleton scope.  All classes annotated
+ * with {@link Listener} are subscribed to a bus, using logic provided by {@link DefaultEventBusAutoSubscriber}, but can
+ * be changed by providing an alternative implementation in {@link EventBusModule.BusTypeListener}:
  * <p>
- * If there is also a {@link SubscribeTo} annotation, the values of that annotation are used to subscribe to one or more buses.
+ * If there is also a {@link SubscribeTo} annotation, the values of that annotation are used to subscribe to one or more
+ * buses.
  * <p>
- * If there is no {@link SubscribeTo} annotation, a {@link Singleton} scoped object will be subscribed to the {@link GlobalBus}, all other objects with a
- * {@link
- * Listener} annotation is subscribed to a {@link SessionBus}
+ * If there is no {@link SubscribeTo} annotation, a {@link Singleton} scoped object will be subscribed to the {@link
+ * GlobalBus}, all other objects with a {@link Listener} annotation is subscribed to a {@link SessionBus}
  * <p>
  * <p>
  * Created by David Sowerby on 08/03/15.
@@ -77,6 +77,17 @@ public class EventBusModule extends AbstractModule {
         bindListener(new ListenerAnnotationMatcher(), new BusTypeListener(uiBusProvider, sessionBusProvider, globalBusProvider));
         bindConfigurationErrorHandlers();
         bindPublicationErrorHandlers();
+        bindBusProviders();
+    }
+
+    /**
+     * User bus providers where you want to enforce the use of a particular bus by sub-classes.  An annotated
+     * constructor parameter in a super-class can be ignored / overridden in a sub-class
+     */
+    protected void bindBusProviders() {
+        bind(GlobalBusProvider.class).to(DefaultGlobalBusProvider.class);
+        bind(SessionBusProvider.class).to(DefaultSessionBusProvider.class);
+        bind(UIBusProvider.class).to(DefaultUIBusProvider.class);
     }
 
 
@@ -85,11 +96,11 @@ public class EventBusModule extends AbstractModule {
      */
     protected void bindConfigurationErrorHandlers() {
         bind(ConfigurationErrorHandler.class).annotatedWith(UIBus.class)
-                                             .to(DefaultEventBusConfigurationErrorHandler.class);
+                .to(DefaultEventBusConfigurationErrorHandler.class);
         bind(ConfigurationErrorHandler.class).annotatedWith(SessionBus.class)
-                                             .to(DefaultEventBusConfigurationErrorHandler.class);
+                .to(DefaultEventBusConfigurationErrorHandler.class);
         bind(ConfigurationErrorHandler.class).annotatedWith(GlobalBus.class)
-                                             .to(DefaultEventBusConfigurationErrorHandler.class);
+                .to(DefaultEventBusConfigurationErrorHandler.class);
     }
 
     /**
@@ -97,11 +108,11 @@ public class EventBusModule extends AbstractModule {
      */
     protected void bindPublicationErrorHandlers() {
         bind((IPublicationErrorHandler.class)).annotatedWith(UIBus.class)
-                                              .to(DefaultEventBusErrorHandler.class);
+                .to(DefaultEventBusErrorHandler.class);
         bind((IPublicationErrorHandler.class)).annotatedWith(SessionBus.class)
-                                              .to(DefaultEventBusErrorHandler.class);
+                .to(DefaultEventBusErrorHandler.class);
         bind((IPublicationErrorHandler.class)).annotatedWith(GlobalBus.class)
-                                              .to(DefaultEventBusErrorHandler.class);
+                .to(DefaultEventBusErrorHandler.class);
     }
 
 
@@ -112,8 +123,8 @@ public class EventBusModule extends AbstractModule {
     }
 
     /**
-     * Refer to the MBassador documentation
-     * at https://github.com/bennidi/mbassador/wiki/Configuration for more information about the configuration itself.
+     * Refer to the MBassador documentation at https://github.com/bennidi/mbassador/wiki/Configuration for more
+     * information about the configuration itself.
      *
      * @return configuration for the UIBus
      */
@@ -121,14 +132,14 @@ public class EventBusModule extends AbstractModule {
     @UIBus
     protected IBusConfiguration uiBusConfig() {
         return new BusConfiguration().addFeature(Feature.SyncPubSub.Default())
-                                     .addFeature(Feature.AsynchronousHandlerInvocation.Default())
-                                     .addFeature(Feature.AsynchronousMessageDispatch.Default());
+                .addFeature(Feature.AsynchronousHandlerInvocation.Default())
+                .addFeature(Feature.AsynchronousMessageDispatch.Default());
 
     }
 
     /**
-     * Refer to the MBassador documentation
-     * at https://github.com/bennidi/mbassador/wiki/Configuration for more information about the configuration itself.
+     * Refer to the MBassador documentation at https://github.com/bennidi/mbassador/wiki/Configuration for more
+     * information about the configuration itself.
      *
      * @return configuration for the SessionBus
      */
@@ -136,14 +147,14 @@ public class EventBusModule extends AbstractModule {
     @SessionBus
     protected IBusConfiguration sessionBusConfig() {
         return new BusConfiguration().addFeature(Feature.SyncPubSub.Default())
-                                     .addFeature(Feature.AsynchronousHandlerInvocation.Default())
-                                     .addFeature(Feature.AsynchronousMessageDispatch.Default());
+                .addFeature(Feature.AsynchronousHandlerInvocation.Default())
+                .addFeature(Feature.AsynchronousMessageDispatch.Default());
 
     }
 
     /**
-     * Refer to the MBassador documentation
-     * at https://github.com/bennidi/mbassador/wiki/Configuration for more information about the configuration itself.
+     * Refer to the MBassador documentation at https://github.com/bennidi/mbassador/wiki/Configuration for more
+     * information about the configuration itself.
      *
      * @return configuration for the GlobalBus
      */
@@ -151,8 +162,8 @@ public class EventBusModule extends AbstractModule {
     @GlobalBus
     protected IBusConfiguration globalBusConfig() {
         return new BusConfiguration().addFeature(Feature.SyncPubSub.Default())
-                                     .addFeature(Feature.AsynchronousHandlerInvocation.Default())
-                                     .addFeature(Feature.AsynchronousMessageDispatch.Default());
+                .addFeature(Feature.AsynchronousHandlerInvocation.Default())
+                .addFeature(Feature.AsynchronousMessageDispatch.Default());
 
     }
 
@@ -164,8 +175,8 @@ public class EventBusModule extends AbstractModule {
     ConfigurationErrorHandler configurationErrorHandler) {
         PubSubSupport<BusMessage> bus = createBus(config, publicationErrorHandler, configurationErrorHandler, "UI", false);
         bus.getRuntime()
-           .add(BUS_SCOPE, "ui")
-           .add(BUS_INDEX, uiBusIndex.getAndIncrement());
+                .add(BUS_SCOPE, "ui")
+                .add(BUS_INDEX, uiBusIndex.getAndIncrement());
         return bus;
     }
 
@@ -177,7 +188,7 @@ public class EventBusModule extends AbstractModule {
         eventBus = (useAsync) ? new MBassador<>(config) : new SyncMessageBus<>(config);
         ((AbstractPubSubSupport) eventBus).addErrorHandler(publicationErrorHandler);
         log.debug("instantiated a {} Bus with id {}", name, eventBus.getRuntime()
-                                                                    .get(Properties.Common.Id));
+                .get(Properties.Common.Id));
         return eventBus;
     }
 
@@ -188,8 +199,8 @@ public class EventBusModule extends AbstractModule {
             publicationErrorHandler, @SessionBus ConfigurationErrorHandler configurationErrorHandler) {
         PubSubSupport<BusMessage> bus = createBus(config, publicationErrorHandler, configurationErrorHandler, "Session", false);
         bus.getRuntime()
-           .add(BUS_SCOPE, "session")
-           .add(BUS_INDEX, sessionBusIndex.getAndIncrement());
+                .add(BUS_SCOPE, "session")
+                .add(BUS_INDEX, sessionBusIndex.getAndIncrement());
         return bus;
     }
 
@@ -200,8 +211,8 @@ public class EventBusModule extends AbstractModule {
                                                           @GlobalBus ConfigurationErrorHandler configurationErrorHandler) {
         PubSubSupport<BusMessage> bus = createBus(config, publicationErrorHandler, configurationErrorHandler, "Global", true);
         bus.getRuntime()
-           .add(BUS_SCOPE, "global")
-           .add(BUS_INDEX, globalBusIndex.getAndIncrement());
+                .add(BUS_SCOPE, "global")
+                .add(BUS_INDEX, globalBusIndex.getAndIncrement());
         return bus;
     }
 
@@ -229,8 +240,8 @@ public class EventBusModule extends AbstractModule {
         }
 
         /**
-         * The logic for auto subscribing can be changed by providing an alternative implementation of EventBusAutoSubscriber, but it has to be created using
-         * 'new' here, because the Injector is not yet complete
+         * The logic for auto subscribing can be changed by providing an alternative implementation of
+         * EventBusAutoSubscriber, but it has to be created using 'new' here, because the Injector is not yet complete
          *
          * @param type
          * @param encounter

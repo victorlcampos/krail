@@ -11,6 +11,7 @@
 
 package uk.q3c.krail.core.services;
 
+import uk.q3c.krail.core.eventbus.GlobalBusProvider;
 import uk.q3c.krail.i18n.I18NKey;
 import uk.q3c.krail.i18n.LabelKey;
 import uk.q3c.krail.i18n.Translate;
@@ -29,8 +30,8 @@ public class TestService extends AbstractService {
     @Dependency(required = false, always = false)
     Service serviceD;
 
-    protected TestService(Translate translate, ServicesController servicesController, Service serviceA, Service serviceB, Service serviceC, Service serviceD) {
-        super(translate, servicesController);
+    protected TestService(Translate translate, ServicesController servicesController, Service serviceA, Service serviceB, Service serviceC, Service serviceD, GlobalBusProvider globalBusProvider) {
+        super(translate, servicesController, globalBusProvider);
         this.serviceA = serviceA;
         this.serviceB = serviceB;
         this.serviceC = serviceC;

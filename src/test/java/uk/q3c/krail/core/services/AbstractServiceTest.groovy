@@ -14,6 +14,8 @@ package uk.q3c.krail.core.services
 import com.google.inject.Inject
 import net.engio.mbassy.bus.common.PubSubSupport
 import spock.lang.Specification
+import uk.q3c.krail.core.eventbus.BusMessage
+import uk.q3c.krail.core.eventbus.GlobalBusProvider
 import uk.q3c.krail.i18n.I18NKey
 import uk.q3c.krail.i18n.LabelKey
 import uk.q3c.krail.i18n.Translate
@@ -28,13 +30,16 @@ import static uk.q3c.krail.core.services.Service.State.*
 class AbstractServiceTest extends Specification {
 
     def translate = Mock(Translate)
+    GlobalBusProvider globalBusProvider = Mock(GlobalBusProvider)
+    PubSubSupport<BusMessage> eventBus = Mock(PubSubSupport)
 
     TestService service;
 
     def servicesController = Mock(ServicesController)
 
     def setup() {
-        service = new TestService(translate, servicesController)
+        globalBusProvider.getGlobalBus() >> eventBus
+        service = new TestService(translate, servicesController, globalBusProvider)
         service.setThrowStartException(false)
         service.setThrowStopException(false)
     }
@@ -76,8 +81,6 @@ class AbstractServiceTest extends Specification {
     def "start sets state to STARTING, then START if dependencies start ok"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
         when:
@@ -95,8 +98,6 @@ class AbstractServiceTest extends Specification {
     def "start sets state to STARTING, then FAILED_TO_START if dependencies do not start ok"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
         when:
@@ -113,8 +114,7 @@ class AbstractServiceTest extends Specification {
     def "doStart() throws an exception, state is FAILED_TO_START"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
+
         service.throwStartException = true
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -132,8 +132,6 @@ class AbstractServiceTest extends Specification {
     def "stop sets state to STOPPED"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = false
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -154,8 +152,6 @@ class AbstractServiceTest extends Specification {
     def "doStop() throws an exception, sets state to FAILED_TO_STOP"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = true
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -176,8 +172,6 @@ class AbstractServiceTest extends Specification {
     def "stop with dependency failed sets state to DEPENDENCY_FAILED"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = false
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -198,8 +192,6 @@ class AbstractServiceTest extends Specification {
     def "stop with dependency stopped sets state to DEPENDENCY_STOPPED"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = false
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -220,8 +212,6 @@ class AbstractServiceTest extends Specification {
     def "stop with FAILED sets state to FAILED"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = false
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -243,8 +233,6 @@ class AbstractServiceTest extends Specification {
     def "fail() is same as stop() with FAILED parameter"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = false
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -265,8 +253,6 @@ class AbstractServiceTest extends Specification {
     def "fail during fail() is sets state to FAILED_TO_STOP"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = true
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -288,8 +274,6 @@ class AbstractServiceTest extends Specification {
     def "stop() with invalid parameter throws IllegalArgumentException"() {
         given:
 
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
         service.throwStopException = false
         translate.from(LabelKey.Authorisation) >> "Authorisation"
 
@@ -305,8 +289,6 @@ class AbstractServiceTest extends Specification {
     def "start() when already started should exit"() {
 
         given:
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
 
 
         when:
@@ -322,8 +304,6 @@ class AbstractServiceTest extends Specification {
     def "stop() when already stopped should exit"() {
 
         given:
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
 
 
         when:
@@ -340,8 +320,6 @@ class AbstractServiceTest extends Specification {
     def "fail() when already stopped should exit"() {
 
         given:
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
 
 
         when:
@@ -359,8 +337,6 @@ class AbstractServiceTest extends Specification {
     def "get and setInstance()"() {
 
         given:
-        def eventBus = Mock(PubSubSupport)
-        service.init(eventBus)
 
 
         when:
@@ -379,8 +355,8 @@ class AbstractServiceTest extends Specification {
         boolean throwStopException = false;
 
         @Inject
-        protected TestService(Translate translate, ServicesController servicesController) {
-            super(translate, servicesController);
+        protected TestService(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesController, globalBusProvider);
         }
 
         @Override

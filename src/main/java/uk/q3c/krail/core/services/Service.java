@@ -11,8 +11,6 @@
 
 package uk.q3c.krail.core.services;
 
-import net.engio.mbassy.bus.common.PubSubSupport;
-import uk.q3c.krail.core.eventbus.BusMessage;
 import uk.q3c.krail.i18n.I18NKey;
 
 import java.util.EnumSet;
@@ -50,13 +48,8 @@ import java.util.EnumSet;
  */
 public interface Service {
 
-    enum State {
-        INITIAL, STARTING, STARTED, FAILED, STOPPING, STOPPED, FAILED_TO_START, FAILED_TO_STOP, DEPENDENCY_STOPPED, DEPENDENCY_FAILED
-    }
-
     EnumSet<State> stoppedStates = EnumSet.complementOf(EnumSet.of(State.INITIAL, State.STARTING, State.STARTED));
     EnumSet<State> stopReasons = EnumSet.of(State.STOPPED, State.DEPENDENCY_FAILED, State.DEPENDENCY_STOPPED, State.FAILED);
-
 
     /**
      * You will only need to implement this if you are not using a sub-class of
@@ -65,7 +58,6 @@ public interface Service {
      *
      */
     ServiceStatus start();
-
 
     /**
      * Equivalent to calling
@@ -133,15 +125,6 @@ public interface Service {
      */
     boolean isStopped();
 
-    /**
-     * Called after the service has been constructed by the {@link ServicesModule}, to supply the {@code globalBus}.  There should never be a need to call this
-     * directly except for testing.
-     *
-     * @param globalBus
-     *         the event bus used to transfer Service state messages
-     */
-    void init(PubSubSupport<BusMessage> globalBus);
-
     I18NKey getDescriptionKey();
 
     void setDescriptionKey(I18NKey descriptionKey);
@@ -159,9 +142,12 @@ public interface Service {
      */
     I18NKey getNameKey();
 
-
     int getInstance();
 
     void setInstance(int instance);
+
+    enum State {
+        INITIAL, STARTING, STARTED, FAILED, STOPPING, STOPPED, FAILED_TO_START, FAILED_TO_STOP, DEPENDENCY_STOPPED, DEPENDENCY_FAILED
+    }
 
 }

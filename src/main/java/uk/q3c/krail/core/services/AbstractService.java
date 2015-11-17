@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.q3c.krail.core.eventbus.BusMessage;
 import uk.q3c.krail.core.eventbus.GlobalBus;
+import uk.q3c.krail.core.eventbus.GlobalBusProvider;
 import uk.q3c.krail.core.eventbus.SubscribeTo;
 import uk.q3c.krail.i18n.I18NKey;
 import uk.q3c.krail.i18n.Translate;
@@ -63,10 +64,11 @@ public abstract class AbstractService implements Service {
     private int instance = 0;
 
     @Inject
-    protected AbstractService(Translate translate, ServicesController servicesController) {
+    protected AbstractService(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
         super();
         this.translate = translate;
         this.servicesController = servicesController;
+        eventBus = globalBusProvider.getGlobalBus();
     }
 
     @Override
@@ -74,10 +76,6 @@ public abstract class AbstractService implements Service {
         return state == STARTED;
     }
 
-    @Override
-    public synchronized void init(PubSubSupport<BusMessage> eventBus) {
-        this.eventBus = eventBus;
-    }
 
     @Override
     public synchronized ServiceStatus stop() {
@@ -156,6 +154,15 @@ public abstract class AbstractService implements Service {
         return state;
     }
 
+    protected void setState(State state) {
+        if (state != this.state) {
+            State previousState = this.state;
+            this.state = state;
+            log.debug(getName() + " has changed status from {} to {}", previousState, getState());
+            publishStatusChange(previousState);
+        }
+    }
+
     @Override
     public synchronized I18NKey getDescriptionKey() {
         return descriptionKey;
@@ -164,15 +171,6 @@ public abstract class AbstractService implements Service {
     @Override
     public synchronized void setDescriptionKey(I18NKey descriptionKey) {
         this.descriptionKey = descriptionKey;
-    }
-
-    protected void setState(State state) {
-        if (state != this.state) {
-            State previousState = this.state;
-            this.state = state;
-            log.debug(getName() + " has changed status from {} to {}", previousState, getState());
-            publishStatusChange(previousState);
-        }
     }
 
     @Override

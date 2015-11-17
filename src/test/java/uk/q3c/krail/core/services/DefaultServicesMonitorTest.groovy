@@ -15,6 +15,7 @@ import net.engio.mbassy.bus.common.PubSubSupport
 import spock.lang.Specification
 import uk.q3c.krail.UnitTestFor
 import uk.q3c.krail.core.eventbus.BusMessage
+import uk.q3c.krail.core.eventbus.GlobalBusProvider
 import uk.q3c.krail.i18n.I18NKey
 import uk.q3c.krail.i18n.LabelKey
 import uk.q3c.krail.i18n.Translate
@@ -27,20 +28,21 @@ import static uk.q3c.krail.core.services.Service.State.*
 class DefaultServicesMonitorTest extends Specification {
 
     PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
+    GlobalBusProvider globalBusProvider = Mock(GlobalBusProvider)
     ServicesController servicesController = Mock(ServicesController)
     Translate translate = Mock(Translate)
     Service serviceA
 
     def setup() {
-        serviceA = new AbstractServiceTest.TestService(translate, servicesController)
-        serviceA.init(globalBus)
+        globalBusProvider.getGlobalBus() >> globalBus
+        serviceA = new AbstractServiceTest.TestService(translate, servicesController, globalBusProvider)
         servicesController.startDependenciesFor(serviceA) >> true
     }
 
 
     def "initial message, 'registers' service, records state, then change reflected correctly, then clear()"() {
         given:
-        DefaultServicesMonitor monitor = new DefaultServicesMonitor(globalBus)
+        DefaultServicesMonitor monitor = new DefaultServicesMonitor(globalBusProvider)
         serviceA.start()
 
         when:

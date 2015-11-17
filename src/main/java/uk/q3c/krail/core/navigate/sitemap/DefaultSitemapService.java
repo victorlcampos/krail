@@ -22,6 +22,7 @@ import uk.q3c.krail.core.config.ApplicationConfiguration;
 import uk.q3c.krail.core.config.ApplicationConfigurationService;
 import uk.q3c.krail.core.config.ConfigKeys;
 import uk.q3c.krail.core.config.InheritingConfiguration;
+import uk.q3c.krail.core.eventbus.GlobalBusProvider;
 import uk.q3c.krail.core.services.AbstractService;
 import uk.q3c.krail.core.services.Dependency;
 import uk.q3c.krail.core.services.ServicesController;
@@ -58,8 +59,8 @@ public class DefaultSitemapService extends AbstractService implements SitemapSer
     @Inject
     protected DefaultSitemapService(ApplicationConfigurationService configurationService, Translate translate, Provider<DirectSitemapLoader>
             directSitemapLoaderProvider, Provider<AnnotationSitemapLoader> annotationSitemapLoaderProvider, MasterSitemap sitemap, SitemapFinisher
-            sitemapFinisher, ApplicationConfiguration configuration, ServicesController servicesController) {
-        super(translate, servicesController);
+            sitemapFinisher, ApplicationConfiguration configuration, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
+        super(translate, servicesController, globalBusProvider);
         this.configurationService = configurationService;
         this.annotationSitemapLoaderProvider = annotationSitemapLoaderProvider;
         this.directSitemapLoaderProvider = directSitemapLoaderProvider;

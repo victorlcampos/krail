@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import uk.q3c.krail.core.eventbus.BusMessage;
 import uk.q3c.krail.core.eventbus.EventBusModule;
 import uk.q3c.krail.core.eventbus.GlobalBus;
+import uk.q3c.krail.core.eventbus.GlobalBusProvider;
 import uk.q3c.krail.core.guice.uiscope.UIScopeModule;
 import uk.q3c.krail.core.guice.vsscope.VaadinSessionScopeModule;
 import uk.q3c.krail.core.services.DefaultServicesController;
@@ -69,6 +70,9 @@ public class DefaultApplicationConfigurationServiceTest {
     CurrentLocale currentLocale = new MockCurrentLocale();
 
     @Mock
+    GlobalBusProvider globalBusProvider;
+
+    @Mock
     I18NProcessor i18NProcessor;
 
     @BeforeClass
@@ -84,8 +88,8 @@ public class DefaultApplicationConfigurationServiceTest {
         Locale.setDefault(Locale.UK);
         iniFiles = new HashMap<>();
         configuration.clear();
-        service = new DefaultApplicationConfigurationService(translate, configuration, iniFiles, servicesController);
-        service.init(globalBus);
+        when(globalBusProvider.getGlobalBus()).thenReturn(globalBus);
+        service = new DefaultApplicationConfigurationService(translate, configuration, iniFiles, servicesController, globalBusProvider);
         currentLocale.setLocale(Locale.UK);
         when(servicesController.startDependenciesFor(service)).thenReturn(true);
     }

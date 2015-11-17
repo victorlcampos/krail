@@ -12,6 +12,7 @@
 package uk.q3c.krail.core.services
 import spock.lang.Specification
 import uk.q3c.krail.UnitTestFor
+import uk.q3c.krail.core.eventbus.GlobalBusProvider
 import uk.q3c.krail.i18n.LabelKey
 import uk.q3c.krail.i18n.Translate
 import uk.q3c.util.testutil.LogMonitor
@@ -26,6 +27,7 @@ class DefaultServiceDependencyScannerTest extends Specification {
     Service mockB = Mock(Service)
     Service mockC = Mock(Service)
     Service mockD = Mock(Service)
+    GlobalBusProvider globalBusProvider = Mock(GlobalBusProvider)
 
     def controller = Mock(ServicesController)
     def translate = Mock(Translate)
@@ -52,7 +54,7 @@ class DefaultServiceDependencyScannerTest extends Specification {
 
         def graph = Mock(ServicesGraph)
         def scanner = new DefaultServiceDependencyScanner(graph)
-        def service = new TestService(translate, controller, mockA, mockB, mockC, mockD)
+        def service = new TestService(translate, controller, mockA, mockB, mockC, mockD, globalBusProvider)
 
         when:
         scanner.scan(service)
@@ -72,7 +74,7 @@ class DefaultServiceDependencyScannerTest extends Specification {
 
         def graph = Mock(ServicesGraph)
         def scanner = new DefaultServiceDependencyScanner(graph)
-        def service = new TestService(translate, controller, null, mockB, mockC, mockD)
+        def service = new TestService(translate, controller, null, mockB, mockC, mockD, globalBusProvider)
 
         when:
         scanner.scan(service)

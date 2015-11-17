@@ -115,7 +115,7 @@ public class ServicesModule extends AbstractModule {
                     ServicesGraph servicesGraph = servicesGraphProvider.get();
                     servicesGraph.registerService(service);
 //                    use init because it avoids having to pass the eventBus through constructor injection for every Service, which also risks getting the wrong bus passed in.
-                    service.init(globalBusProvider.get());
+//                    service.init(globalBusProvider.get());
 
                 }
             };

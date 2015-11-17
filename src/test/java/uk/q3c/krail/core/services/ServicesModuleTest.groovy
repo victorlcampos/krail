@@ -20,6 +20,7 @@ import uk.q3c.krail.UnitTestFor
 import uk.q3c.krail.core.eventbus.BusMessage
 import uk.q3c.krail.core.eventbus.EventBusModule
 import uk.q3c.krail.core.eventbus.GlobalBus
+import uk.q3c.krail.core.eventbus.GlobalBusProvider
 import uk.q3c.krail.core.guice.uiscope.UIScopeModule
 import uk.q3c.krail.core.guice.vsscope.VaadinSessionScopeModule
 import uk.q3c.krail.core.navigate.sitemap.SitemapService
@@ -46,12 +47,11 @@ class ServicesModuleTest extends Specification {
 
         @Dependency
         private SitemapService dependency;
-        int initCalled
         int stopsCalled
 
         @Inject
-        protected TestService(Translate translate, ServicesController servicesController) {
-            super(translate, servicesController)
+        protected TestService(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesController, globalBusProvider)
         }
 
         @Override
@@ -64,10 +64,7 @@ class ServicesModuleTest extends Specification {
 
         }
 
-        @Override
-        void init(PubSubSupport<BusMessage> eventBus) {
-            initCalled++
-        }
+
 
         @Override
         I18NKey getNameKey() {
@@ -80,12 +77,11 @@ class ServicesModuleTest extends Specification {
 
         @Dependency
         private SitemapService dependency;
-        int initCalled
         int stopsCalled
 
         @Inject
-        protected TestService2(Translate translate, ServicesController servicesController) {
-            super(translate, servicesController)
+        protected TestService2(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesController, globalBusProvider)
         }
 
         @Override
@@ -98,11 +94,6 @@ class ServicesModuleTest extends Specification {
 
         }
 
-        @Override
-        void init(PubSubSupport<BusMessage> eventBus) {
-            super.init(eventBus)
-            initCalled++
-        }
 
         @Override
         I18NKey getNameKey() {
@@ -113,15 +104,14 @@ class ServicesModuleTest extends Specification {
 
     static class TestServiceAnnotated extends AbstractService implements ServiceUsingDependencyAnnotation {
 
-        int initCalled
 
 
         @Dependency
         private TestService dependency;
 
         @Inject
-        protected TestServiceAnnotated(Translate translate, ServicesController servicesController, TestService dependency) {
-            super(translate, servicesController)
+        protected TestServiceAnnotated(Translate translate, ServicesController servicesController, TestService dependency, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesController, globalBusProvider)
             this.dependency = dependency
 
         }
@@ -145,10 +135,6 @@ class ServicesModuleTest extends Specification {
             return dependency
         }
 
-        @Override
-        void init(PubSubSupport<BusMessage> eventBus) {
-            initCalled++
-        }
 
     }
 
@@ -172,7 +158,6 @@ class ServicesModuleTest extends Specification {
         then:
 
         graph.isRegistered(service)
-        service.initCalled == 1
         // cannot actively check for no scan - but a scan would fail because dependency is null
     }
 
@@ -186,7 +171,6 @@ class ServicesModuleTest extends Specification {
 
         graph.isRegistered(service)
         graph.isRegistered(service.getDependency())
-        service.initCalled == 1
     }
 
     //unreliable - not surprising given that it tries to call finalize() directly.  How can this be tested?

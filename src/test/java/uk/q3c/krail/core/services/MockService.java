@@ -98,10 +98,6 @@ public class MockService implements Service {
         return Service.stoppedStates.contains(state);
     }
 
-    @Override
-    public void init(PubSubSupport<BusMessage> globalBus) {
-        this.globalBus = globalBus;
-    }
 
     @Override
     public I18NKey getNameKey() {

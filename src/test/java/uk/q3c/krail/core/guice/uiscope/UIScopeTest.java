@@ -27,6 +27,7 @@ import org.mockito.stubbing.Answer;
 import uk.q3c.krail.core.config.ApplicationConfigurationModule;
 import uk.q3c.krail.core.data.DataModule;
 import uk.q3c.krail.core.eventbus.EventBusModule;
+import uk.q3c.krail.core.eventbus.GlobalBusProvider;
 import uk.q3c.krail.core.guice.vsscope.VaadinSessionScopeModule;
 import uk.q3c.krail.core.navigate.NavigationModule;
 import uk.q3c.krail.core.navigate.sitemap.*;
@@ -158,8 +159,8 @@ public class UIScopeTest {
     static class MockSitemapService extends AbstractService implements SitemapService {
 
         @Inject
-        protected MockSitemapService(Translate translate, ServicesController servicesController) {
-            super(translate, servicesController);
+        protected MockSitemapService(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesController, globalBusProvider);
         }
 
         @Override
