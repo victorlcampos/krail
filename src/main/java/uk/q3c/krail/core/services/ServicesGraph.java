@@ -22,7 +22,7 @@ import java.util.List;
  * using {@link Dependency} annotations, through the {@link ServicesModule} or at runtime through the {@link ServicesGraphRuntimeUserInterface}<br>
  * <br>
  * Note that when a call is made to any method, when a {@link ServiceKey} parameter does not exist in the graph, that {@link ServiceKey} is added to the graph
- * automatically.   For example, a call to {@link #findOptionalDependencies(ServiceKey)} with a ServiceKey which has not yet been added to the graph, willadd
+ * automatically.   For example, a call to {@link #findOptionalDependencies} with a ServiceKey which has not yet been added to the graph, willadd
  * the key, and return an empty list.
  * <p>
  * Throws a {@link CycleDetectedException} If a dependency is created which causes a loop (Service A depends on B which depends on A)
@@ -39,7 +39,7 @@ public interface ServicesGraph {
      * @param service
      *         the {@link Service} to add
      */
-    void addService(@Nonnull ServiceKey service);
+    void addService(@Nonnull Class<? extends Service> service);
 
     /**
      * The {@code dependant} service always depends on {@code dependency}.  Thus:<ol><li>if {@code dependency} does not
@@ -54,7 +54,7 @@ public interface ServicesGraph {
      * @throws CycleDetectedException
      *         if a loop is created by forming this dependency
      */
-    void alwaysDependsOn(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency);
+    void alwaysDependsOn(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency);
 
     /**
      * The {@code dependant} service depends on {@code dependency}, but only in order to start - for example, {@code
@@ -70,7 +70,7 @@ public interface ServicesGraph {
      * @throws CycleDetectedException
      *         if a loop is created by forming this dependency
      */
-    void requiresOnlyAtStart(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency);
+    void requiresOnlyAtStart(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency);
 
     /**
      * The {@code dependant} service will attempt to use {@code dependency} if it is available, but will start and
@@ -87,11 +87,10 @@ public interface ServicesGraph {
      * @throws CycleDetectedException
      *         if a loop is created by forming this dependency
      */
-    void optionallyUses(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency);
+    void optionallyUses(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency);
 
     /**
-     * Equivalent to {@link #optionallyUses(ServiceKey, ServiceKey)}, {@link #requiresOnlyAtStart(ServiceKey,
-     * ServiceKey)} or {@link #alwaysDependsOn(ServiceKey, ServiceKey)} depending on the value of {@code type}
+     * Equivalent to {@link #optionallyUses}, {@link #requiresOnlyAtStart} or {@link #alwaysDependsOn} depending on the value of {@code type}
      *
      * @param dependant
      *         the Service which depends on {@code dependency}. Will be added to the graph if not already
@@ -105,7 +104,7 @@ public interface ServicesGraph {
      * @throws CycleDetectedException
      *         if a loop is created by forming this dependency
      */
-    void addDependency(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency, Dependency.Type type);
+    void addDependency(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency, Dependency.Type type);
 
 
     /**
@@ -119,7 +118,7 @@ public interface ServicesGraph {
      * @return a list of all service which must be started before the {@code dependant} can start
      */
     @Nonnull
-    List<ServiceKey> findDependenciesOnlyRequiredAtStartFor(@Nonnull ServiceKey dependant);
+    List<Class<? extends Service>> findDependenciesOnlyRequiredAtStartFor(@Nonnull Class<? extends Service> dependant);
 
     /**
      * Returns a list of all services which are optionally started before the {@code dependant} starts.  Note that the {@code dependant} still wiats for
@@ -132,7 +131,7 @@ public interface ServicesGraph {
      * @return a list of all services which are required to be started only to start the {@code dependant}
      */
     @Nonnull
-    List<ServiceKey> findOptionalDependencies(@Nonnull ServiceKey dependant);
+    List<Class<? extends Service>> findOptionalDependencies(@Nonnull Class<? extends Service> dependant);
 
 
     /**
@@ -146,26 +145,26 @@ public interface ServicesGraph {
      * running.
      */
     @Nonnull
-    List<ServiceKey> findDependenciesAlwaysRequiredFor(@Nonnull ServiceKey dependant);
+    List<Class<? extends Service>> findDependenciesAlwaysRequiredFor(@Nonnull Class<? extends Service> dependant);
 
     /**
      * Returns a list of all services which have declared that {@code dependency} must be running in order for them to continue running.
      */
     @Nonnull
-    List<ServiceKey> findDependantsAlwaysRequiringDependency(@Nonnull ServiceKey dependency);
+    List<Class<? extends Service>> findDependantsAlwaysRequiringDependency(@Nonnull Class<? extends Service> dependency);
 
     /**
      * Returns a list of all services which have declared that they use {@code dependency} as an optional dependency
      */
     @Nonnull
-    List<ServiceKey> findDependantsOptionallyUsingDependency(@Nonnull ServiceKey dependency);
+    List<Class<? extends Service>> findDependantsOptionallyUsingDependency(@Nonnull Class<? extends Service> dependency);
 
     /**
      * Returns a list of all dependants which have declared that {@code dependency} is only required in order to start the dependant.  The result therefore
-     * does not include those returned by {@link #findDependantsAlwaysRequiringDependency(ServiceKey)}
+     * does not include those returned by {@link #findDependantsAlwaysRequiringDependency)}
      */
     @Nonnull
-    List<ServiceKey> findDependantsRequiringDependencyOnlyToStart(@Nonnull ServiceKey dependency);
+    List<Class<? extends Service>> findDependantsRequiringDependencyOnlyToStart(@Nonnull Class<? extends Service> dependency);
 
     /**
      * Returns a list of {@link Service} instances corresponding to the provided list of {@link ServiceKey}s.  Throws a {@link ServiceKeyException} if there is
@@ -181,7 +180,7 @@ public interface ServicesGraph {
      *         if there is no Service mapped to any {@link ServiceKey}
      */
     @Nonnull
-    List<Service> servicesForKeys(@Nonnull List<ServiceKey> serviceKeys);
+    List<Service> servicesForKeys(@Nonnull List<Class<? extends Service>> serviceKeys);
 
     /**
      * Registers a service, usually as it is constructed, and maps it to its {@link ServiceKey}.  This enables the ServicesGraph implementation to map the
@@ -205,11 +204,11 @@ public interface ServicesGraph {
      * Returns true if the {@code serviceKey} is registered.  There may however not be a Service associated with the key yet.
      *
      * @param serviceKey
-     *         the ServiceKey to look for
+     *         the Service Class to look for
      *
      * @return Returns true if the {@code serviceKey} is registered.  There may however not be a Service associated with the key yet.
      */
-    boolean isRegistered(ServiceKey serviceKey);
+    boolean isRegistered(Class<? extends Service> serviceKey);
 
     /**
      * returns an immutable list of currently registered services

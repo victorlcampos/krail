@@ -33,14 +33,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Singleton
 public class DefaultServicesGraph implements ServicesGraph {
-    private enum Selection {REQUIRED_AT_START, ALWAYS_REQUIRED, OPTIONAL}
     private static Logger log = LoggerFactory.getLogger(DefaultServicesGraph.class);
     private Forest<ServiceKey, ServiceEdge> graph;
     private Map<ServiceKey, Service> keyMap;
-
+    private Forest<Class<? extends Service>, ServiceEdge> classGraph;
+    private Forest<Service, ServiceEdge> instanceGraph;
     @Inject
     public DefaultServicesGraph(Set<DependencyDefinition> configuredDependencies) {
-        graph = new DelegateForest<>(new DirectedOrderedSparseMultigraph<>());
+        classGraph = new DelegateForest<>(new DirectedOrderedSparseMultigraph<>());
+        instanceGraph = new DelegateForest<>(new DirectedOrderedSparseMultigraph<>());
         keyMap = new HashMap<>();
         processConfiguredDependencies(configuredDependencies);
     }
@@ -56,16 +57,16 @@ public class DefaultServicesGraph implements ServicesGraph {
     }
 
     @Override
-    public void alwaysDependsOn(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency) {
+    public void alwaysDependsOn(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency) {
         createDependency(dependant, dependency, Dependency.Type.ALWAYS_REQUIRED);
     }
 
-    private void createDependency(ServiceKey dependant, ServiceKey dependency, Dependency.Type type) {
+    private void createDependency(Class<? extends Service> dependant, Class<? extends Service> dependency, Dependency.Type type) {
         checkNotNull(dependant, dependency);
-        graph.addVertex(dependant);
-        graph.addVertex(dependency);
+        classGraph.addVertex(dependant);
+        classGraph.addVertex(dependency);
         ServiceEdge edge = new ServiceEdge(type);
-        graph.addEdge(edge, dependant, dependency);
+        classGraph.addEdge(edge, dependant, dependency);
         if (detectCycle(dependant, dependency)) {
             throw new CycleDetectedException("Creating dependency from " + dependant + " to " + dependency + " has caused a loop");
         }
@@ -82,17 +83,17 @@ public class DefaultServicesGraph implements ServicesGraph {
      *
      * @return true if a cycle detected
      */
-    protected boolean detectCycle(ServiceKey parentNode, ServiceKey childNode) {
+    protected boolean detectCycle(Class<? extends Service> parentNode, Class<? extends Service> childNode) {
         if (parentNode.equals(childNode)) {
             return true;
         }
-        Stack<ServiceKey> stack = new Stack<>();
+        Stack<Class<? extends Service>> stack = new Stack<>();
         stack.push(parentNode);
         while (!stack.isEmpty()) {
-            ServiceKey node = stack.pop();
-            Collection<ServiceKey> predecessors = graph.getPredecessors(node);
+            Class<? extends Service> node = stack.pop();
+            Collection<Class<? extends Service>> predecessors = classGraph.getPredecessors(node);
             if (predecessors != null) {
-                for (ServiceKey pred : predecessors) {
+                for (Class<? extends Service> pred : predecessors) {
                     if (pred == childNode) {
                         return true;
                     }
@@ -109,52 +110,52 @@ public class DefaultServicesGraph implements ServicesGraph {
     }
 
     @Override
-    public void requiresOnlyAtStart(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency) {
+    public void requiresOnlyAtStart(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency) {
         createDependency(dependant, dependency, Dependency.Type.REQUIRED_ONLY_AT_START);
     }
 
     @Override
-    public void optionallyUses(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency) {
+    public void optionallyUses(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency) {
         createDependency(dependant, dependency, Dependency.Type.OPTIONAL);
+    }
+
+    @Override
+    public void addDependency(@Nonnull Class<? extends Service> dependant, @Nonnull Class<? extends Service> dependency, Dependency.Type type) {
+        createDependency(dependant, dependency, type);
     }
 
 
     // ----------------------------------- find dependencies -------------------------------------
 
     @Override
-    public void addDependency(@Nonnull ServiceKey dependant, @Nonnull ServiceKey dependency, Dependency.Type type) {
-        createDependency(dependant, dependency, type);
-    }
-
-    @Override
     @Nonnull
-    public List<ServiceKey> findDependenciesOnlyRequiredAtStartFor(@Nonnull ServiceKey dependant) {
+    public List<Class<? extends Service>> findDependenciesOnlyRequiredAtStartFor(@Nonnull Class<? extends Service> dependant) {
         checkNotNull(dependant);
         return buildDependencies(dependant, Selection.REQUIRED_AT_START);
     }
 
-    private List<ServiceKey> buildDependencies(ServiceKey dependant, Selection selection) {
-        if (!graph.containsVertex(dependant)) {
+    private List<Class<? extends Service>> buildDependencies(Class<? extends Service> dependant, Selection selection) {
+        if (!classGraph.containsVertex(dependant)) {
             addService(dependant);
         }
-        Collection<ServiceEdge> edges = graph.getOutEdges(dependant);
-        List<ServiceKey> selectedDependencies = new ArrayList<>();
+        Collection<ServiceEdge> edges = classGraph.getOutEdges(dependant);
+        List<Class<? extends Service>> selectedDependencies = new ArrayList<>();
 
         for (ServiceEdge edge : edges) {
             if (edgeSelected(edge, selection)) {
-                selectedDependencies.add(graph.getOpposite(dependant, edge));
+                selectedDependencies.add(classGraph.getOpposite(dependant, edge));
             }
         }
         return selectedDependencies;
     }
 
-    //------------------------------------- find dependants --------------------------------------------
-
     @Override
-    public void addService(@Nonnull ServiceKey service) {
+    public void addService(@Nonnull Class<? extends Service> service) {
         checkNotNull(service);
-        graph.addVertex(service);
+        classGraph.addVertex(service);
     }
+
+    //------------------------------------- find dependants --------------------------------------------
 
     private boolean edgeSelected(ServiceEdge edge, Selection selection) {
         switch (selection) {
@@ -173,36 +174,36 @@ public class DefaultServicesGraph implements ServicesGraph {
 
     @Override
     @Nonnull
-    public List<ServiceKey> findOptionalDependencies(@Nonnull ServiceKey dependant) {
+    public List<Class<? extends Service>> findOptionalDependencies(@Nonnull Class<? extends Service> dependant) {
         checkNotNull(dependant);
         return buildDependencies(dependant, Selection.OPTIONAL);
+    }
+
+    @Override
+    @Nonnull
+    public List<Class<? extends Service>> findDependenciesAlwaysRequiredFor(@Nonnull Class<? extends Service> dependant) {
+        checkNotNull(dependant);
+        return buildDependencies(dependant, Selection.ALWAYS_REQUIRED);
     }
     //--------------------------------------------------------------------------------------
 
     @Override
     @Nonnull
-    public List<ServiceKey> findDependenciesAlwaysRequiredFor(@Nonnull ServiceKey dependant) {
-        checkNotNull(dependant);
-        return buildDependencies(dependant, Selection.ALWAYS_REQUIRED);
-    }
-
-    @Override
-    @Nonnull
-    public List<ServiceKey> findDependantsAlwaysRequiringDependency(@Nonnull ServiceKey dependency) {
+    public List<Class<? extends Service>> findDependantsAlwaysRequiringDependency(@Nonnull Class<? extends Service> dependency) {
         checkNotNull(dependency);
         return buildDependants(dependency, Selection.ALWAYS_REQUIRED);
     }
 
-    private List<ServiceKey> buildDependants(ServiceKey dependency, Selection selection) {
-        if (!graph.containsVertex(dependency)) {
+    private List<Class<? extends Service>> buildDependants(Class<? extends Service> dependency, Selection selection) {
+        if (!classGraph.containsVertex(dependency)) {
             addService(dependency);
         }
-        Collection<ServiceEdge> edges = graph.getInEdges(dependency);
-        List<ServiceKey> selectedDependencies = new ArrayList<>();
+        Collection<ServiceEdge> edges = classGraph.getInEdges(dependency);
+        List<Class<? extends Service>> selectedDependencies = new ArrayList<>();
 
         for (ServiceEdge edge : edges) {
             if (edgeSelected(edge, selection)) {
-                selectedDependencies.add(graph.getOpposite(dependency, edge));
+                selectedDependencies.add(classGraph.getOpposite(dependency, edge));
             }
         }
         return selectedDependencies;
@@ -210,25 +211,25 @@ public class DefaultServicesGraph implements ServicesGraph {
 
     @Override
     @Nonnull
-    public List<ServiceKey> findDependantsOptionallyUsingDependency(@Nonnull ServiceKey dependency) {
+    public List<Class<? extends Service>> findDependantsOptionallyUsingDependency(@Nonnull Class<? extends Service> dependency) {
         checkNotNull(dependency);
         return buildDependants(dependency, Selection.OPTIONAL);
     }
 
     @Override
     @Nonnull
-    public List<ServiceKey> findDependantsRequiringDependencyOnlyToStart(@Nonnull ServiceKey dependency) {
+    public List<Class<? extends Service>> findDependantsRequiringDependencyOnlyToStart(@Nonnull Class<? extends Service> dependency) {
         checkNotNull(dependency);
         return buildDependants(dependency, Selection.REQUIRED_AT_START);
     }
 
     @Override
     @Nonnull
-    public List<Service> servicesForKeys(@Nonnull List<ServiceKey> serviceKeys) {
+    public List<Service> servicesForKeys(@Nonnull List<Class<? extends Service>> serviceKeys) {
         checkNotNull(serviceKeys);
         List<Service> services = new ArrayList<>();
-        List<ServiceKey> keysWithoutService = new ArrayList<>();
-        for (ServiceKey serviceKey : serviceKeys) {
+        List<Class<? extends Service>> keysWithoutService = new ArrayList<>();
+        for (Class<? extends Service> serviceKey : serviceKeys) {
             Service service = keyMap.get(serviceKey);
             if (service != null) {
                 services.add(service);
@@ -245,7 +246,7 @@ public class DefaultServicesGraph implements ServicesGraph {
         StringBuilder buf = new StringBuilder("Service has not been registered for ");
         buf.append(keysWithoutService.size());
         buf.append(" ServiceKeys:\n");
-        for (ServiceKey key : keysWithoutService) {
+        for (Class<? extends Service> key : keysWithoutService) {
             buf.append(key.toString());
             buf.append("\n");
         }
@@ -265,15 +266,17 @@ public class DefaultServicesGraph implements ServicesGraph {
     }
 
     @Override
-    public boolean isRegistered(ServiceKey serviceKey) {
+    public boolean isRegistered(Class<? extends Service> serviceKey) {
         return graph.getVertices()
-                    .contains(serviceKey);
+                .contains(serviceKey);
     }
 
     @Override
     public ImmutableList<Service> registeredServices() {
         return ImmutableList.copyOf(keyMap.values());
     }
+
+    private enum Selection {REQUIRED_AT_START, ALWAYS_REQUIRED, OPTIONAL}
 }
 
 

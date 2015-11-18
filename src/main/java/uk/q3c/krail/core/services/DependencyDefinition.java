@@ -21,11 +21,11 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public class DependencyDefinition {
 
-    private final ServiceKey dependant;
-    private final ServiceKey dependency;
+    private final Class<? extends Service> dependant;
+    private final Class<? extends Service> dependency;
     private final Dependency.Type type;
 
-    public DependencyDefinition(ServiceKey dependant, ServiceKey dependency, Dependency.Type type) {
+    public DependencyDefinition(Class<? extends Service> dependant, Class<? extends Service> dependency, Dependency.Type type) {
         this.dependant = dependant;
         this.dependency = dependency;
         this.type = type;
@@ -35,11 +35,11 @@ public class DependencyDefinition {
         return type;
     }
 
-    public ServiceKey getDependency() {
+    public Class<? extends Service> getDependency() {
         return dependency;
     }
 
-    public ServiceKey getDependant() {
+    public Class<? extends Service> getDependant() {
         return dependant;
     }
 }
