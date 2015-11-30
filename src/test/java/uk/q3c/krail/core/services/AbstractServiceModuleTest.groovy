@@ -14,14 +14,16 @@ package uk.q3c.krail.core.services
 import com.google.inject.*
 import spock.lang.Specification
 import uk.q3c.krail.UnitTestFor
+import uk.q3c.krail.core.config.ApplicationConfigurationService
+import uk.q3c.krail.core.navigate.sitemap.SitemapService
 
 @UnitTestFor(AbstractServiceModule)
 //@UseModules([])
 class AbstractServiceModuleTest extends Specification {
 
-    ServiceKey serviceKeyA = Mock(ServiceKey)
-    ServiceKey serviceKeyB = Mock(ServiceKey)
-    ServiceKey serviceKeyC = Mock(ServiceKey)
+    Class<? extends Service> serviceKeyA = SitemapService.class
+    Class<? extends Service> serviceKeyB = ApplicationConfigurationService.class
+    Class<? extends Service> serviceKeyC = TestService.class
 
 
     class TestServiceModule extends AbstractServiceModule {

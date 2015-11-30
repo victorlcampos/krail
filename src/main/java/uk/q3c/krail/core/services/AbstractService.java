@@ -56,18 +56,18 @@ public abstract class AbstractService implements Service {
 
     private static Logger log = LoggerFactory.getLogger(AbstractService.class);
     private final Translate translate;
-    private final ServicesController servicesController;
+    private final ServicesGraph servicesGraph;
     protected State state = INITIAL;
     //    private List<DependencyRecord> dependencies;
     private I18NKey descriptionKey;
     private PubSubSupport<BusMessage> eventBus;
-    private int instance = 0;
+    private int instanceNumber = 0;
 
     @Inject
-    protected AbstractService(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
+    protected AbstractService(Translate translate, ServicesGraph servicesGraph, GlobalBusProvider globalBusProvider) {
         super();
         this.translate = translate;
-        this.servicesController = servicesController;
+        this.servicesGraph = servicesGraph;
         eventBus = globalBusProvider.getGlobalBus();
     }
 
@@ -88,11 +88,11 @@ public abstract class AbstractService implements Service {
         checkArgument(Service.stopReasons.contains(reasonForStop));
         if (isStopped()) {
             log.debug("Attempting to stop service {}, but it is already stopped. No action taken", getName());
-            return new ServiceStatus(getServiceKey(), state);
+            return new ServiceStatus(this.getClass(), state);
         }
         log.info("Stopping service: {}", getName());
         setState(STOPPING);
-        servicesController.stopDependantsOf(this, false);
+        servicesGraph.stopDependantsOf(this, false);
         try {
             doStop();
             setState(reasonForStop);
@@ -102,7 +102,7 @@ public abstract class AbstractService implements Service {
         }
 
 
-        return new ServiceStatus(getServiceKey(), state);
+        return new ServiceStatus(this.getClass(), state);
     }
 
     protected abstract void doStop() throws Exception;
@@ -127,11 +127,11 @@ public abstract class AbstractService implements Service {
     public synchronized ServiceStatus start() {
         if (state == STARTED) {
             log.debug("{} already started, no action taken", getName());
-            return new ServiceStatus(getServiceKey(), state);
+            return new ServiceStatus(this.getClass(), state);
         }
         log.info("Starting service: {}", getName());
         setState(STARTING);
-        if (servicesController.startDependenciesFor(this)) {
+        if (servicesGraph.startDependenciesFor(this)) {
             try {
                 doStart();
                 setState(STARTED);
@@ -144,7 +144,7 @@ public abstract class AbstractService implements Service {
             setState(DEPENDENCY_FAILED);
         }
 
-        return new ServiceStatus(getServiceKey(), state);
+        return new ServiceStatus(this.getClass(), state);
     }
 
     protected abstract void doStart() throws Exception;
@@ -181,14 +181,12 @@ public abstract class AbstractService implements Service {
         return translate.from(descriptionKey);
     }
 
-    @Override
-    public synchronized int getInstance() {
-        return instance;
+    public synchronized int getInstanceNumber() {
+        return instanceNumber;
     }
 
-    @Override
-    public synchronized void setInstance(int instance) {
-        this.instance = instance;
+    public synchronized void setInstanceNumber(int instanceNumber) {
+        this.instanceNumber = instanceNumber;
     }
 
 

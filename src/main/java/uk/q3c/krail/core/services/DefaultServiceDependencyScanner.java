@@ -40,12 +40,12 @@ public class DefaultServiceDependencyScanner implements ServiceDependencyScanner
                         } else {
                             if (annotation.required()) {
                                 if (annotation.always()) {
-                                    servicesGraph.alwaysDependsOn(service.getServiceKey(), dependency.getServiceKey());
+                                    servicesGraph.alwaysDependsOn(service.getClass(), dependency.getClass());
                                 } else {
-                                    servicesGraph.requiresOnlyAtStart(service.getServiceKey(), dependency.getServiceKey());
+                                    servicesGraph.requiresOnlyAtStart(service.getClass(), dependency.getClass());
                                 }
                             } else {
-                                servicesGraph.optionallyUses(service.getServiceKey(), dependency.getServiceKey());
+                                servicesGraph.optionallyUses(service.getClass(), dependency.getClass());
                             }
                         }
                     }

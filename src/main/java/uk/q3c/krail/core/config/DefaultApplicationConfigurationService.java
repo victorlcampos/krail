@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import uk.q3c.krail.core.eventbus.GlobalBusProvider;
 import uk.q3c.krail.core.services.AbstractService;
 import uk.q3c.krail.core.services.Service;
-import uk.q3c.krail.core.services.ServicesController;
+import uk.q3c.krail.core.services.ServicesGraph;
 import uk.q3c.krail.i18n.DescriptionKey;
 import uk.q3c.krail.i18n.I18NKey;
 import uk.q3c.krail.i18n.LabelKey;
@@ -68,8 +68,8 @@ public class DefaultApplicationConfigurationService extends AbstractService impl
 
     @Inject
     protected DefaultApplicationConfigurationService(Translate translate, ApplicationConfiguration configuration, Map<Integer, IniFileConfig> iniFiles,
-                                                     ServicesController servicesController, GlobalBusProvider globalBusProvider) {
-        super(translate, servicesController, globalBusProvider);
+                                                     ServicesGraph servicesGraph, GlobalBusProvider globalBusProvider) {
+        super(translate, servicesGraph, globalBusProvider);
         this.configuration = configuration;
         this.iniFiles = iniFiles;
         setDescriptionKey(DescriptionKey.Application_Configuration_Service);

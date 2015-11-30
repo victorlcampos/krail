@@ -12,31 +12,46 @@
 package uk.q3c.krail.core.services;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 
 import static com.google.inject.multibindings.Multibinder.newSetBinder;
 
 /**
- * A helper base class which can be used where the developer wishes to dependencies between services using Guice.  Remember to invoke super.configure from the
- * sub-class configure()
+ * A helper base class which can be used where the developer wishes to dependencies between services using Guice.
+ * Remember to invoke super.configure from the sub-class configure()
  * <p>
  * Created by David Sowerby on 13/11/15.
  */
 public class AbstractServiceModule extends AbstractModule {
     private Multibinder<DependencyDefinition> dependencies;
+    //other modules may add to this
+    private MapBinder<Class<? extends Service>, Service> registeredServices;
 
 
     @Override
     protected void configure() {
         dependencies = newSetBinder(binder(), DependencyDefinition.class);
+        //use TypeLiteral for one parameter have to use it for both
+        TypeLiteral<Class<? extends Service>> serviceClassLiteral = new TypeLiteral<Class<? extends Service>>() {
+        };
+        TypeLiteral<Service> serviceLiteral = new TypeLiteral<Service>() {
+        };
+        registeredServices = MapBinder.newMapBinder(binder(), serviceClassLiteral, serviceLiteral);
     }
 
     /**
-     * Define a dependency - identical in function to calling {@link ServicesGraph#addDependency(ServiceKey, ServiceKey, Dependency.Type)}.  Dependencies added
-     * here are injected into {@link ServicesGraph}
+     * Define a dependency - identical in function to calling {@link ServicesGraph#addDependencyInstance(Class, Class,
+     * Dependency.Type)}   Dependencies added here are injected into {@link ServicesGraph}
      */
-    protected void addDependency(ServiceKey dependant, ServiceKey dependency, Dependency.Type type) {
+    protected void addDependency(Class<? extends Service> dependant, Class<? extends Service> dependency, Dependency.Type type) {
         dependencies.addBinding()
-                    .toInstance(new DependencyDefinition(dependant, dependency, type));
+                .toInstance(new DependencyDefinition(dependant, dependency, type));
+    }
+
+    protected void registerService(Class<? extends Service> serviceClass) {
+        registeredServices.addBinding(serviceClass)
+                .to(serviceClass);
     }
 }

@@ -9,27 +9,10 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package uk.q3c.krail.core.services
-
-import spock.lang.Specification
-import uk.q3c.krail.UnitTestFor
-import uk.q3c.krail.core.navigate.sitemap.SitemapService
-
-import static uk.q3c.krail.core.services.Service.State.FAILED_TO_START
-
-@UnitTestFor(ServiceStatus)
-class ServiceStatusTest extends Specification {
+package uk.q3c.krail.core.services;
 
 
+public class MockServiceC extends MockService {
 
-    def "construct"() {
-        given:
 
-        ServiceStatus status = new ServiceStatus(SitemapService.class, FAILED_TO_START)
-
-        expect:
-
-        status.getServiceClass() == SitemapService.class
-        status.getState() == FAILED_TO_START
-    }
 }

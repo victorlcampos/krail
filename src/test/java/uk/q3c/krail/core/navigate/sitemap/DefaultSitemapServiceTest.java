@@ -99,7 +99,6 @@ public class DefaultSitemapServiceTest {
         iniConfig = new HierarchicalINIConfiguration(inifile);
         iniConfig.clear();
         iniConfig.save();
-        servicesGraph.addService(service.getServiceKey());
     }
 
     @After

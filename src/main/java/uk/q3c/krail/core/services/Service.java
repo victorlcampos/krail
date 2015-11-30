@@ -129,22 +129,19 @@ public interface Service {
 
     void setDescriptionKey(I18NKey descriptionKey);
 
-    default ServiceKey getServiceKey() {
-        return new ServiceKey(getNameKey(), getInstance());
-    }
 
     /**
-     * Implementations (even sub-classes of {@link AbstractService} must define a key which when combined with {@link #getInstance()}, provides a unique
+     * Implementations (even sub-classes of {@link AbstractService} must define a key which when combined with {@link #getInstanceNumber()}, provides a unique
      * identity for this Service.  It is an I18NKey because it is expected that this name will be presented to end users (even if only to application sys
      * admins)
      *
-     * @return a key which when combined with {@link #getInstance()}, provides a unique identity for this Service
+     * @return a key which when combined with {@link #getInstanceNumber()}, provides a unique identity for this Service
      */
     I18NKey getNameKey();
 
-    int getInstance();
+    int getInstanceNumber();
 
-    void setInstance(int instance);
+    void setInstanceNumber(int instance);
 
     enum State {
         INITIAL, STARTING, STARTED, FAILED, STOPPING, STOPPED, FAILED_TO_START, FAILED_TO_STOP, DEPENDENCY_STOPPED, DEPENDENCY_FAILED

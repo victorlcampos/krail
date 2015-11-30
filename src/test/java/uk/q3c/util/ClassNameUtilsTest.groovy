@@ -15,7 +15,6 @@ import spock.guice.UseModules
 import spock.lang.Specification
 import uk.q3c.krail.UnitTestFor
 import uk.q3c.krail.core.services.Service
-import uk.q3c.krail.core.services.ServiceKey
 import uk.q3c.krail.core.services.ServiceStatus
 import uk.q3c.krail.i18n.I18NKey
 /**
@@ -91,9 +90,7 @@ class ClassNameUtilsTest extends Specification {
         }
 
 
-
-        @Override
-        void setInstance(int instance) {
+        void setInstanceNumber(int instance) {
 
         }
 
@@ -107,13 +104,7 @@ class ClassNameUtilsTest extends Specification {
 
         }
 
-        @Override
-        ServiceKey getServiceKey() {
-            return super.getServiceKey()
-        }
-
-        @Override
-        int getInstance() {
+        int getInstanceNumber() {
             return 0
         }
     }

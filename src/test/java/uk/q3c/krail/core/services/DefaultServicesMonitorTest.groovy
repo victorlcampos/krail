@@ -29,14 +29,14 @@ class DefaultServicesMonitorTest extends Specification {
 
     PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
     GlobalBusProvider globalBusProvider = Mock(GlobalBusProvider)
-    ServicesController servicesController = Mock(ServicesController)
+    ServicesGraph servicesGraph = Mock(ServicesGraph)
     Translate translate = Mock(Translate)
     Service serviceA
 
     def setup() {
         globalBusProvider.getGlobalBus() >> globalBus
-        serviceA = new AbstractServiceTest.TestService(translate, servicesController, globalBusProvider)
-        servicesController.startDependenciesFor(serviceA) >> true
+        serviceA = new AbstractServiceTest.TestService(translate, servicesGraph, globalBusProvider)
+        servicesGraph.startDependenciesFor(serviceA) >> true
     }
 
 
@@ -82,8 +82,8 @@ class DefaultServicesMonitorTest extends Specification {
 
     class TestService extends AbstractService {
 
-        protected TestService(Translate translate, ServicesController servicesController) {
-            super(translate, servicesController)
+        protected TestService(Translate translate, ServicesGraph servicesGraph) {
+            super(translate, servicesGraph)
         }
 
         @Override

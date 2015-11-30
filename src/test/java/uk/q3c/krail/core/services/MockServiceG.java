@@ -11,9 +11,8 @@
 
 package uk.q3c.krail.core.services;
 
-public class ServiceKeyException extends RuntimeException {
 
-    public ServiceKeyException(String message) {
-        super(message);
-    }
+public class MockServiceG extends MockService {
+
+
 }

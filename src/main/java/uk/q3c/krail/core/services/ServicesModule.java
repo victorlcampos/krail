@@ -18,6 +18,7 @@ import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.matcher.Matchers;
+import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
@@ -49,12 +50,19 @@ public class ServicesModule extends AbstractModule {
     private static final Logger log = LoggerFactory.getLogger(ServicesModule.class);
     //has no contents in this module, but prevents Guice from complaining that there is no Set<DependencyDefinition>.  An empty set is legitimate, and other modules won't declare unless needed
     private Multibinder<DependencyDefinition> dependencies;
+    //other modules may add to this
+    private MapBinder<Class<? extends Service>, Service> registeredServices;
 
 
     @Override
     protected void configure() {
         dependencies = newSetBinder(binder(), DependencyDefinition.class);
-        bindServicesController();
+        //use TypeLiteral for one parameter have to use it for both
+        TypeLiteral<Class<? extends Service>> serviceClassLiteral = new TypeLiteral<Class<? extends Service>>() {
+        };
+        TypeLiteral<Service> serviceLiteral = new TypeLiteral<Service>() {
+        };
+        registeredServices = MapBinder.newMapBinder(binder(), serviceClassLiteral, serviceLiteral);
         bindServicesGraph();
         bindServiceDependencyScanner();
 
@@ -77,9 +85,6 @@ public class ServicesModule extends AbstractModule {
 
     }
 
-    protected void bindServicesController() {
-        bind(ServicesController.class).to(DefaultServicesController.class);
-    }
 
     protected void bindServicesGraph() {
         bind(ServicesGraph.class).to(DefaultServicesGraph.class);
@@ -114,8 +119,7 @@ public class ServicesModule extends AbstractModule {
                     Service service = (Service) injectee;
                     ServicesGraph servicesGraph = servicesGraphProvider.get();
                     servicesGraph.registerService(service);
-//                    use init because it avoids having to pass the eventBus through constructor injection for every Service, which also risks getting the wrong bus passed in.
-//                    service.init(globalBusProvider.get());
+
 
                 }
             };

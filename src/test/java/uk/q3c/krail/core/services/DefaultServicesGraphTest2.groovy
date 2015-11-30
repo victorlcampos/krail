@@ -10,43 +10,38 @@
  */
 
 package uk.q3c.krail.core.services
-
 import spock.lang.Specification
 import uk.q3c.krail.UnitTestFor
-import uk.q3c.krail.i18n.LabelKey
 import uk.q3c.krail.i18n.Translate
 /**
  *
  * Created by david on 27/10/15.
  */
-@UnitTestFor(DefaultServicesController)
-class DefaultServicesControllerTest extends Specification {
+@UnitTestFor(DefaultServicesGraph)
+class DefaultServicesGraphTest2 extends Specification {
 
 
-    DefaultServicesController controller
+    ServicesGraph graph
     def translate = Mock(Translate)
     ServicesGraph servicesGraph
 
-    MockService sA
-    MockService sB
-    MockService sC
-    MockService sD
+    Service sA = new MockServiceA()
+    Service sB = new MockServiceB()
+    Service sC = new MockServiceC()
+    Service sD = new MockServiceD()
+
 
     def setup() {
         Set<DependencyDefinition> dependencyDefinitions = new HashSet<>()
         servicesGraph = new DefaultServicesGraph(dependencyDefinitions)
         translate.from(_, _) >> "translated key"
-        controller = new DefaultServicesController(servicesGraph, translate)
+        graph = new DefaultServicesGraph(servicesGraph, translate)
 
-        sA = new MockService().nameKey(LabelKey.Active_Source)
-        sB = new MockService().nameKey(LabelKey.Auto_Stub)
-        sC = new MockService().nameKey(LabelKey.Connection_URL)
-        sD = new MockService().nameKey(LabelKey.Alphabetic_Ascending)
 
-        servicesGraph.registerService(sA)
-        servicesGraph.registerService(sB)
-        servicesGraph.registerService(sC)
-        servicesGraph.registerService(sD)
+        servicesGraph.registerService(sA.getClass())
+        servicesGraph.registerService(sB.getClass())
+        servicesGraph.registerService(sC.getClass())
+        servicesGraph.registerService(sD.getClass())
 
 
     }
@@ -54,11 +49,11 @@ class DefaultServicesControllerTest extends Specification {
     def "no dependencies, 'startDependenciesFor' returns true"() {
         given:
 
-        servicesGraph.addService(sA.getServiceKey())
+        servicesGraph.addService(sA.getClass() as Class<? extends Service>)
 
         when:
 
-        boolean result = controller.startDependenciesFor(sA)
+        boolean result = graph.startDependenciesFor(sA)
 
         then:
 
@@ -71,12 +66,12 @@ class DefaultServicesControllerTest extends Specification {
         given:
 
 
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sC.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sC.getClass())
 
         when:
 
-        boolean result = controller.startDependenciesFor(sA)
+        boolean result = graph.startDependenciesFor(sA)
 
         then: //dependencies started
 
@@ -93,13 +88,13 @@ class DefaultServicesControllerTest extends Specification {
         given:
 
 
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.requiresOnlyAtStart(sA.getServiceKey(), sC.getServiceKey())
-        servicesGraph.optionallyUses(sA.getServiceKey(), sD.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.requiresOnlyAtStart(sA.getClass(), sC.getClass())
+        servicesGraph.optionallyUses(sA.getClass(), sD.getClass())
 
         when:
 
-        boolean result = controller.startDependenciesFor(sA)
+        boolean result = graph.startDependenciesFor(sA)
 
         then: //dependencies started
 
@@ -118,13 +113,13 @@ class DefaultServicesControllerTest extends Specification {
         given:
 
         sB.failToStart(true)
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.requiresOnlyAtStart(sA.getServiceKey(), sC.getServiceKey())
-        servicesGraph.optionallyUses(sA.getServiceKey(), sD.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.requiresOnlyAtStart(sA.getClass(), sC.getClass())
+        servicesGraph.optionallyUses(sA.getClass(), sD.getClass())
 
         when:
 
-        boolean result = controller.startDependenciesFor(sA)
+        boolean result = graph.startDependenciesFor(sA)
 
         then: //dependencies started
 
@@ -143,13 +138,13 @@ class DefaultServicesControllerTest extends Specification {
         given:
 
         sC.failToStart(true)
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.requiresOnlyAtStart(sA.getServiceKey(), sC.getServiceKey())
-        servicesGraph.optionallyUses(sA.getServiceKey(), sD.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.requiresOnlyAtStart(sA.getClass(), sC.getClass())
+        servicesGraph.optionallyUses(sA.getClass(), sD.getClass())
 
         when:
 
-        boolean result = controller.startDependenciesFor(sA)
+        boolean result = graph.startDependenciesFor(sA)
 
         then: //dependencies started
 
@@ -168,13 +163,13 @@ class DefaultServicesControllerTest extends Specification {
         given:
 
         sD.failToStart(true)
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.requiresOnlyAtStart(sA.getServiceKey(), sC.getServiceKey())
-        servicesGraph.optionallyUses(sA.getServiceKey(), sD.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.requiresOnlyAtStart(sA.getClass(), sC.getClass())
+        servicesGraph.optionallyUses(sA.getClass(), sD.getClass())
 
         when:
 
-        boolean result = controller.startDependenciesFor(sA)
+        boolean result = graph.startDependenciesFor(sA)
 
         then: //dependencies started
 
@@ -193,9 +188,9 @@ class DefaultServicesControllerTest extends Specification {
     def "dependency stops, dependants with 'alwaysRequired' also stop, optional and 'requiredAtStart' do not"() {
         given:
 
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.requiresOnlyAtStart(sC.getServiceKey(), sB.getServiceKey())
-        servicesGraph.optionallyUses(sD.getServiceKey(), sB.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.requiresOnlyAtStart(sC.getClass(), sB.getClass())
+        servicesGraph.optionallyUses(sD.getClass(), sB.getClass())
 
         sA.start()
         sB.start()
@@ -205,7 +200,7 @@ class DefaultServicesControllerTest extends Specification {
 
         when:
 
-        boolean result = controller.stopDependantsOf(sB, false)
+        boolean result = graph.stopDependantsOf(sB, false)
 
         then: //dependencies started
 
@@ -222,9 +217,9 @@ class DefaultServicesControllerTest extends Specification {
     def "dependency fails, dependants with 'alwaysRequired' also fail, optional and 'requiredAtStart' do not"() {
         given:
 
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.requiresOnlyAtStart(sC.getServiceKey(), sB.getServiceKey())
-        servicesGraph.optionallyUses(sD.getServiceKey(), sB.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.requiresOnlyAtStart(sC.getClass(), sB.getClass())
+        servicesGraph.optionallyUses(sD.getClass(), sB.getClass())
 
         sA.start()
         sB.start()
@@ -234,7 +229,7 @@ class DefaultServicesControllerTest extends Specification {
 
         when:
 
-        boolean result = controller.stopDependantsOf(sB, true)
+        boolean result = graph.stopDependantsOf(sB, true)
 
         then: //dependencies started
 
@@ -251,9 +246,9 @@ class DefaultServicesControllerTest extends Specification {
     def "stop all services"() {
         given:
 
-        servicesGraph.alwaysDependsOn(sA.getServiceKey(), sB.getServiceKey())
-        servicesGraph.requiresOnlyAtStart(sC.getServiceKey(), sB.getServiceKey())
-        servicesGraph.optionallyUses(sD.getServiceKey(), sB.getServiceKey())
+        servicesGraph.alwaysDependsOn(sA.getClass(), sB.getClass())
+        servicesGraph.requiresOnlyAtStart(sC.getClass(), sB.getClass())
+        servicesGraph.optionallyUses(sD.getClass(), sB.getClass())
 
         sA.start()
         sB.start()
@@ -262,7 +257,7 @@ class DefaultServicesControllerTest extends Specification {
 
         when:
 
-        controller.stopAllServices()
+        graph.stopAllServices()
 
         then:
 

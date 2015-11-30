@@ -24,12 +24,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import uk.q3c.krail.core.services.DefaultServicesController;
+import uk.q3c.krail.core.services.DefaultServicesGraph;
 import uk.q3c.krail.core.services.Service;
-import uk.q3c.krail.core.services.ServiceKey;
-import uk.q3c.krail.core.services.ServicesController;
+import uk.q3c.krail.core.services.ServicesGraph;
 import uk.q3c.krail.core.shiro.KrailSecurityManager;
-import uk.q3c.krail.i18n.LabelKey;
 import uk.q3c.util.testutil.LogMonitor;
 
 import javax.servlet.ServletContext;
@@ -56,7 +54,7 @@ public class DefaultBindingManagerTest {
     @Mock
     Service service;
     @Mock
-    ServicesController servicesController;
+    ServicesGraph servicesGraph;
 
 
     @BeforeClass
@@ -79,8 +77,7 @@ public class DefaultBindingManagerTest {
         // given
         when(servletContextEvent.getServletContext()).thenReturn(servletContext);
         bindingManager.contextInitialized(servletContextEvent);
-        when(service.getServiceKey()).thenReturn(new ServiceKey(LabelKey.Yes));
-        logMonitor.addClassFilter(DefaultServicesController.class);
+        logMonitor.addClassFilter(DefaultServicesGraph.class);
 
         // when
         Injector injector = bindingManager.getInjector();

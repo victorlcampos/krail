@@ -30,7 +30,7 @@ import uk.q3c.krail.core.eventbus.GlobalBus;
 import uk.q3c.krail.core.eventbus.GlobalBusProvider;
 import uk.q3c.krail.core.guice.uiscope.UIScopeModule;
 import uk.q3c.krail.core.guice.vsscope.VaadinSessionScopeModule;
-import uk.q3c.krail.core.services.DefaultServicesController;
+import uk.q3c.krail.core.services.DefaultServicesGraph;
 import uk.q3c.krail.core.services.Service.State;
 import uk.q3c.krail.core.services.ServiceStatus;
 import uk.q3c.krail.i18n.*;
@@ -61,7 +61,7 @@ public class DefaultApplicationConfigurationServiceTest {
     ApplicationConfiguration configuration;
 
     @Mock
-    DefaultServicesController servicesController;
+    DefaultServicesGraph defaultServicesGraph;
 
     @Inject
     @GlobalBus
@@ -89,9 +89,9 @@ public class DefaultApplicationConfigurationServiceTest {
         iniFiles = new HashMap<>();
         configuration.clear();
         when(globalBusProvider.getGlobalBus()).thenReturn(globalBus);
-        service = new DefaultApplicationConfigurationService(translate, configuration, iniFiles, servicesController, globalBusProvider);
+        service = new DefaultApplicationConfigurationService(translate, configuration, iniFiles, defaultServicesGraph, globalBusProvider);
         currentLocale.setLocale(Locale.UK);
-        when(servicesController.startDependenciesFor(service)).thenReturn(true);
+        when(defaultServicesGraph.startDependenciesFor(service)).thenReturn(true);
     }
 
     @Test

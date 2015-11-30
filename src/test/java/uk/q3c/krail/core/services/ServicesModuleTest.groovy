@@ -40,7 +40,7 @@ import uk.q3c.krail.testutil.TestPersistenceModule
 class ServicesModuleTest extends Specification {
 
     Translate translate = Mock(Translate)
-    ServicesController servicesController = Mock(ServicesController)
+    ServicesGraph servicesGraph = Mock(ServicesGraph)
     ServiceDependencyScanner scanner = Mock(ServiceDependencyScanner)
 
     static class TestService extends AbstractService {
@@ -50,8 +50,8 @@ class ServicesModuleTest extends Specification {
         int stopsCalled
 
         @Inject
-        protected TestService(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
-            super(translate, servicesController, globalBusProvider)
+        protected TestService(Translate translate, ServicesGraph servicesGraph, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesGraph, globalBusProvider)
         }
 
         @Override
@@ -80,8 +80,8 @@ class ServicesModuleTest extends Specification {
         int stopsCalled
 
         @Inject
-        protected TestService2(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
-            super(translate, servicesController, globalBusProvider)
+        protected TestService2(Translate translate, ServicesGraph servicesGraph, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesGraph, globalBusProvider)
         }
 
         @Override
@@ -110,8 +110,8 @@ class ServicesModuleTest extends Specification {
         private TestService dependency;
 
         @Inject
-        protected TestServiceAnnotated(Translate translate, ServicesController servicesController, TestService dependency, GlobalBusProvider globalBusProvider) {
-            super(translate, servicesController, globalBusProvider)
+        protected TestServiceAnnotated(Translate translate, ServicesGraph servicesGraph, TestService dependency, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesGraph, globalBusProvider)
             this.dependency = dependency
 
         }

@@ -35,11 +35,11 @@ class AbstractServiceTest extends Specification {
 
     TestService service;
 
-    def servicesController = Mock(ServicesController)
+    def servicesGraph = Mock(ServicesGraph)
 
     def setup() {
         globalBusProvider.getGlobalBus() >> eventBus
-        service = new TestService(translate, servicesController, globalBusProvider)
+        service = new TestService(translate, servicesGraph, globalBusProvider)
         service.setThrowStartException(false)
         service.setThrowStopException(false)
     }
@@ -89,7 +89,7 @@ class AbstractServiceTest extends Specification {
 
         then:
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STARTING) })
-        1 * servicesController.startDependenciesFor(service) >> true
+        1 * servicesGraph.startDependenciesFor(service) >> true
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STARTED) })
         service.getState().equals(STARTED)
 
@@ -106,7 +106,7 @@ class AbstractServiceTest extends Specification {
 
         then:
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STARTING) })
-        1 * servicesController.startDependenciesFor(service) >> false
+        1 * servicesGraph.startDependenciesFor(service) >> false
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(DEPENDENCY_FAILED) })
         service.getState().equals(DEPENDENCY_FAILED)
     }
@@ -124,7 +124,7 @@ class AbstractServiceTest extends Specification {
 
         then:
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STARTING) })
-        1 * servicesController.startDependenciesFor(service) >> true
+        1 * servicesGraph.startDependenciesFor(service) >> true
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(FAILED_TO_START) })
         service.getState().equals(FAILED_TO_START)
     }
@@ -142,10 +142,10 @@ class AbstractServiceTest extends Specification {
         then:
 
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPING) })
-        1 * servicesController.stopDependantsOf(service, false)
+        1 * servicesGraph.stopDependantsOf(service, false)
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPED) })
         service.getState().equals(STOPPED)
-        status.getServiceKey().equals(service.getServiceKey())
+        status.getServiceClass().equals(service.getClass())
         status.getState().equals(STOPPED)
     }
 
@@ -162,10 +162,10 @@ class AbstractServiceTest extends Specification {
         then:
 
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPING) })
-        1 * servicesController.stopDependantsOf(service, false)
+        1 * servicesGraph.stopDependantsOf(service, false)
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(FAILED_TO_STOP) })
         service.getState().equals(FAILED_TO_STOP)
-        status.getServiceKey().equals(service.getServiceKey())
+        status.getServiceClass().equals(service.getClass())
         status.getState().equals(FAILED_TO_STOP)
     }
 
@@ -182,10 +182,10 @@ class AbstractServiceTest extends Specification {
         then:
 
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPING) })
-        1 * servicesController.stopDependantsOf(service, false)
+        1 * servicesGraph.stopDependantsOf(service, false)
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(DEPENDENCY_FAILED) })
         service.getState().equals(DEPENDENCY_FAILED)
-        status.getServiceKey().equals(service.getServiceKey())
+        status.getServiceClass().equals(service.getClass())
         status.getState().equals(DEPENDENCY_FAILED)
     }
 
@@ -202,10 +202,10 @@ class AbstractServiceTest extends Specification {
         then:
 
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPING) })
-        1 * servicesController.stopDependantsOf(service, false)
+        1 * servicesGraph.stopDependantsOf(service, false)
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(DEPENDENCY_STOPPED) })
         service.getState().equals(DEPENDENCY_STOPPED)
-        status.getServiceKey().equals(service.getServiceKey())
+        status.getServiceClass().equals(service.getClass())
         status.getState().equals(DEPENDENCY_STOPPED)
     }
 
@@ -222,10 +222,10 @@ class AbstractServiceTest extends Specification {
         then:
 
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPING) })
-        1 * servicesController.stopDependantsOf(service, false)
+        1 * servicesGraph.stopDependantsOf(service, false)
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(FAILED) })
         service.getState().equals(FAILED)
-        status.getServiceKey().equals(service.getServiceKey())
+        status.getServiceClass().equals(service.getClass())
         status.getState().equals(FAILED)
     }
 
@@ -243,10 +243,10 @@ class AbstractServiceTest extends Specification {
         then:
 
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPING) })
-        1 * servicesController.stopDependantsOf(service, false)
+        1 * servicesGraph.stopDependantsOf(service, false)
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(FAILED) })
         service.getState().equals(FAILED)
-        status.getServiceKey().equals(service.getServiceKey())
+        status.getServiceClass().equals(service.getClass())
         status.getState().equals(FAILED)
     }
 
@@ -263,10 +263,10 @@ class AbstractServiceTest extends Specification {
         then:
 
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(STOPPING) })
-        1 * servicesController.stopDependantsOf(service, false)
+        1 * servicesGraph.stopDependantsOf(service, false)
         1 * eventBus.publish({ ServiceBusMessage m -> m.toState.equals(FAILED_TO_STOP) })
         service.getState().equals(FAILED_TO_STOP)
-        status.getServiceKey().equals(service.getServiceKey())
+        status.getServiceClass().equals(service.getClass())
         status.getState().equals(FAILED_TO_STOP)
     }
 
@@ -286,9 +286,9 @@ class AbstractServiceTest extends Specification {
         thrown IllegalArgumentException
     }
 
+
     def "start() when already started should exit"() {
 
-        given:
 
 
         when:
@@ -297,13 +297,12 @@ class AbstractServiceTest extends Specification {
         service.start()
 
         then:
-        1 * servicesController.startDependenciesFor(service) >> true
+        1 * servicesGraph.startDependenciesFor(service) >> true
 
     }
 
     def "stop() when already stopped should exit"() {
 
-        given:
 
 
         when:
@@ -312,14 +311,12 @@ class AbstractServiceTest extends Specification {
         service.stop()
 
         then:
-        1 * servicesController.stopDependantsOf(service, false)
-        0 * servicesController.stopDependantsOf(service, true)
+        1 * servicesGraph.stopDependantsOf(service, false)
+        0 * servicesGraph.stopDependantsOf(service, true)
 
     }
 
     def "fail() when already stopped should exit"() {
-
-        given:
 
 
         when:
@@ -328,23 +325,21 @@ class AbstractServiceTest extends Specification {
         service.fail()
 
         then:
-        1 * servicesController.stopDependantsOf(service, false)
-        0 * servicesController.stopDependantsOf(service, true)
+        1 * servicesGraph.stopDependantsOf(service, false)
+        0 * servicesGraph.stopDependantsOf(service, true)
 
     }
 
 
     def "get and setInstance()"() {
 
-        given:
-
 
         when:
 
-        service.setInstance(33)
+        service.setInstanceNumber(33)
 
         then:
-        service.getInstance() == 33
+        service.getInstanceNumber() == 33
 
     }
 
@@ -355,8 +350,8 @@ class AbstractServiceTest extends Specification {
         boolean throwStopException = false;
 
         @Inject
-        protected TestService(Translate translate, ServicesController servicesController, GlobalBusProvider globalBusProvider) {
-            super(translate, servicesController, globalBusProvider);
+        protected TestService(Translate translate, ServicesGraph servicesGraph, GlobalBusProvider globalBusProvider) {
+            super(translate, servicesGraph, globalBusProvider);
         }
 
         @Override

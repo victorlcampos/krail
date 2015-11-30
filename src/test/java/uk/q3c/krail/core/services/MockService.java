@@ -52,7 +52,7 @@ public class MockService implements Service {
             e.printStackTrace();
         }
         state = failToStart ? FAILED_TO_START : STARTED;
-        return new ServiceStatus(getServiceKey(), state);
+        return new ServiceStatus(getClass(), state);
     }
 
 
@@ -69,7 +69,7 @@ public class MockService implements Service {
             e.printStackTrace();
         }
         state = failToStop ? FAILED_TO_STOP : reasonToStop;
-        return new ServiceStatus(getServiceKey(), state);
+        return new ServiceStatus(getClass(), state);
     }
 
     @Override
@@ -117,13 +117,11 @@ public class MockService implements Service {
         this.descriptionKey = descriptionKey;
     }
 
-    @Override
-    public int getInstance() {
+    public int getInstanceNumber() {
         return instance;
     }
 
-    @Override
-    public void setInstance(int instance) {
+    public void setInstanceNumber(int instance) {
         this.instance = instance;
     }
 

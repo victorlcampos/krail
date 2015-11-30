@@ -30,8 +30,9 @@ public class TestService extends AbstractService {
     @Dependency(required = false, always = false)
     Service serviceD;
 
-    protected TestService(Translate translate, ServicesController servicesController, Service serviceA, Service serviceB, Service serviceC, Service serviceD, GlobalBusProvider globalBusProvider) {
-        super(translate, servicesController, globalBusProvider);
+    protected TestService(Translate translate, ServicesGraph servicesGraph, Service serviceA, Service serviceB, Service serviceC, Service serviceD,
+                          GlobalBusProvider globalBusProvider) {
+        super(translate, servicesGraph, globalBusProvider);
         this.serviceA = serviceA;
         this.serviceB = serviceB;
         this.serviceC = serviceC;

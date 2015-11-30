@@ -12,7 +12,6 @@
 package uk.q3c.krail.core.services
 
 import com.google.common.collect.Lists
-import org.mockito.Mock
 import spock.lang.Specification
 import uk.q3c.krail.UnitTestFor
 import uk.q3c.krail.i18n.LabelKey
@@ -29,20 +28,16 @@ class DefaultServicesGraphTest extends Specification {
 
     DefaultServicesGraph graph
 
-    ServiceKey keyA = new ServiceKey(LabelKey.Active_Source);
-    ServiceKey keyB = new ServiceKey(LabelKey.Alphabetic_Ascending);
-    ServiceKey keyC = new ServiceKey(LabelKey.Alphabetic_Descending);
-    ServiceKey keyD = new ServiceKey(LabelKey.Application_Configuration_Service);
-    ServiceKey keyE = new ServiceKey(LabelKey.Authentication);
-    ServiceKey keyF = new ServiceKey(LabelKey.Authorisation);
-    ServiceKey keyG = new ServiceKey(LabelKey.Auto_Stub);
-    ServiceKey keyH = new ServiceKey(LabelKey.Connection_URL);
+    Class<? extends Service> keyA = MockServiceA.class
+    Class<? extends Service> keyB = MockServiceB.class
+    Class<? extends Service> keyC = MockServiceC.class
+    Class<? extends Service> keyD = MockServiceD.class
+    Class<? extends Service> keyE = MockServiceE.class
+    Class<? extends Service> keyF = MockServiceF.class
+    Class<? extends Service> keyG = MockServiceG.class
+    Class<? extends Service> keyH = MockServiceH.class
 
-    @Mock
-    Service serviceA
 
-    @Mock
-    Service serviceB
 
 
     def setup() {
@@ -54,7 +49,7 @@ class DefaultServicesGraphTest extends Specification {
 
         when:
         graph.alwaysDependsOn(keyA, keyB)
-        graph.addDependency(keyA, keyC, Dependency.Type.ALWAYS_REQUIRED)
+        graph.addDependencyInstance(keyA, keyC, ALWAYS_REQUIRED)
         graph.requiresOnlyAtStart(keyA, keyD)
         graph.optionallyUses(keyA, keyE)
         graph.requiresOnlyAtStart(keyB, keyF)
@@ -137,9 +132,7 @@ class DefaultServicesGraphTest extends Specification {
     }
 
     def "no dependencies for buildDependencies() does not NPE"() {
-        given:
 
-        graph.addService(keyA)
 
         expect:
 
@@ -150,9 +143,6 @@ class DefaultServicesGraphTest extends Specification {
 
     def "no dependants for buildDependants() does not NPE"() {
 
-        given:
-
-        graph.addService(keyA)
 
         expect:
 
@@ -209,9 +199,7 @@ class DefaultServicesGraphTest extends Specification {
     }
 
     def "servicesForKeys should throw ServiceKeyException if keys are without services"() {
-        given:
 
-        graph.addService(keyA)
 
         when:
 
@@ -226,13 +214,12 @@ class DefaultServicesGraphTest extends Specification {
         when:
 
         MockService serviceA = new MockService()
-        graph.addService(new ServiceKey(LabelKey.Yes))
         graph.registerService(serviceA)
 
         then:
         graph.servicesForKeys(Lists.asList(new ServiceKey(LabelKey.Yes))).contains(serviceA)
         graph.isRegistered(serviceA)
-        graph.registeredServices().contains(serviceA)
+        graph.registeredServiceInstances().contains(serviceA)
     }
 
     def "cycle created throws CycleException"() {

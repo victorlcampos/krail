@@ -29,7 +29,7 @@ class DefaultServiceDependencyScannerTest extends Specification {
     Service mockD = Mock(Service)
     GlobalBusProvider globalBusProvider = Mock(GlobalBusProvider)
 
-    def controller = Mock(ServicesController)
+    def graph = Mock(ServicesGraph)
     def translate = Mock(Translate)
     LogMonitor logMonitor
 
@@ -54,7 +54,7 @@ class DefaultServiceDependencyScannerTest extends Specification {
 
         def graph = Mock(ServicesGraph)
         def scanner = new DefaultServiceDependencyScanner(graph)
-        def service = new TestService(translate, controller, mockA, mockB, mockC, mockD, globalBusProvider)
+        def service = new TestService(translate, this.graph, mockA, mockB, mockC, mockD, globalBusProvider)
 
         when:
         scanner.scan(service)
@@ -74,7 +74,7 @@ class DefaultServiceDependencyScannerTest extends Specification {
 
         def graph = Mock(ServicesGraph)
         def scanner = new DefaultServiceDependencyScanner(graph)
-        def service = new TestService(translate, controller, null, mockB, mockC, mockD, globalBusProvider)
+        def service = new TestService(translate, this.graph, null, mockB, mockC, mockD, globalBusProvider)
 
         when:
         scanner.scan(service)

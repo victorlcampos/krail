@@ -16,10 +16,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation specifies dependencies between service instances and is valid only when applied to the field of Service
- *
- * <em>Note:</em>In order for @Dependency
- * The annotation It is captured by the {@link * ServiceDependencyScanner} and its values translated for use with the {@link ServicesGraph}
+ * This annotation specifies dependencies between service instances and is valid only when applied to the field of
+ * Service
+ * <p>
+ * <em>Note:</em>In order for @Dependency The annotation It is captured by the {@link * ServiceDependencyScanner} and
+ * its values translated for use with the {@link ServicesGraph}
  * <p>
  *
  * @author David Sowerby
@@ -32,18 +33,18 @@ public @interface Dependency {
 
     /**
      * If true, this dependency is required to be running and its full meaning qualified by {@link #always()}.  If
-     * false, the dependency is optional.  See {@link ServicesGraph#optionallyUses(ServiceKey, ServiceKey)}
+     * false, the dependency is optional.  See {@link ServicesGraph#optionallyUses(Class, Class)}
      *
      * @return If true, this dependency is required to be running and its full meaning qualified by {@link #always()}.
-     * If false, the dependency is optional.  See {@link ServicesGraph#optionallyUses(ServiceKey, ServiceKey)}
+     * If false, the dependency is optional.  See {@link ServicesGraph#optionallyUses(Class, Class)}
      */
     boolean required() default true;
 
     /**
      * This value is ignored if {@link #required()} is false.<br><br> If this value is true, this dependency is required
      * to be running at all times in order for the declaring service to run.  See {@link
-     * ServicesGraph#alwaysDependsOn(ServiceKey, ServiceKey)}.  If this value is false, this dependency is required only
-     * in order to start the declaring service. See {@link ServicesGraph#requiresOnlyAtStart(ServiceKey, ServiceKey)}.
+     * ServicesGraph#alwaysDependsOn(Class, Class)}.  If this value is false, this dependency is required only in order
+     * to start the declaring service. See {@link ServicesGraph#requiresOnlyAtStart(Class, Class)}.
      *
      * @return If true, the dependency is always required, otherwise it is required only to start the declaring service.
      */
