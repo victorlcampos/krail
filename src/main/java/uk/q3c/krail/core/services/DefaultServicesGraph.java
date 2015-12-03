@@ -38,7 +38,19 @@ import static uk.q3c.krail.core.services.Service.State.*;
  */
 @Singleton
 public class DefaultServicesGraph implements ServicesGraph {
+
+    private static final EnumMap<Selection, EnumSet<Dependency.Type>> selectionCriteria;
     private static Logger log = LoggerFactory.getLogger(DefaultServicesGraph.class);
+
+    static {
+        selectionCriteria = new EnumMap<Selection, EnumSet<Type>>(Selection.class);
+        selectionCriteria.put(Selection.ALL, EnumSet.allOf(Type.class));
+        selectionCriteria.put(Selection.ALWAYS_REQUIRED, EnumSet.of(Type.ALWAYS_REQUIRED));
+        selectionCriteria.put(Selection.REQUIRED_AT_START, EnumSet.of(Type.ALWAYS_REQUIRED, Type.REQUIRED_ONLY_AT_START));
+        selectionCriteria.put(Selection.ONLY_REQUIRED_AT_START, EnumSet.of(Type.REQUIRED_ONLY_AT_START));
+        selectionCriteria.put(Selection.OPTIONAL, EnumSet.of(Type.OPTIONAL));
+    }
+
     private Forest<Class<? extends Service>, ServiceEdge> classGraph;
     private Forest<Service, ServiceEdge> instanceGraph;
     private Map<Class<? extends Service>, Provider<Service>> serviceMap;
@@ -360,6 +372,17 @@ public class DefaultServicesGraph implements ServicesGraph {
         return allRequiredDependenciesStarted;
     }
 
+    /**
+     * Returns a list of dependencies for {@code dependant} which are of the {@link Type} defined by {@code selection}
+     *
+     * @param dependant the Service class for which dependencies are requested
+     * @param selection which {@link Type}s to select
+     * @return List of Service classes on which {@code dependant} depends and meet the selection criteria given by meeting the
+     */
+    protected List<Class<? extends Service>> getDependencies(Class<? extends Service> dependant, Selection selection) {
+
+    }
+
     protected List<Future<ServiceStatus>> invokeServicesStateChange(ExecutorService executor, List<Service> services, StateChange stateChange) {
 
         List<Future<ServiceStatus>> futures = new ArrayList<>();
@@ -507,7 +530,7 @@ public class DefaultServicesGraph implements ServicesGraph {
                 .forEach(Service::stop);
     }
 
-    private enum Selection {REQUIRED_AT_START, ALWAYS_REQUIRED, OPTIONAL, ALL}
+    private enum Selection {ONLY_REQUIRED_AT_START, REQUIRED_AT_START, ALWAYS_REQUIRED, OPTIONAL, ALL}
 
     private enum StateChange {START, STOP, FAIL}
 }
